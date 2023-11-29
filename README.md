@@ -1,5 +1,6 @@
 # Mainstream-Bias-in-Dynamic-Recommendation
 Code for the paper -- Mainstream Bias in Dynamic Recommendation
+https://docs.google.com/document/d/1JEPyXzrLPNtUJIUYfAHk_0Ym9-fj5Xx2kMiHor0GE0c/edit
 
 ## Data
 We put the pre-processed MovieLens 1M dataset in the 'Data' folder, where 1000 users are randomly selected for the simulation experiments. We run an MF model with cross entropy loss to complete the user-item relevance matrix to get the ground truth data for the simulation experiments.
