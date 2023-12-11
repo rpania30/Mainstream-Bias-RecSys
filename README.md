@@ -1,5 +1,5 @@
 # Mainstream-Bias-in-Dynamic-Recommendation
-Code for the paper -- Mainstream Bias in Dynamic Recommendation
+Paper for the Code -- Mainstream Bias in Dynamic Recommendation
 https://docs.google.com/document/d/1JEPyXzrLPNtUJIUYfAHk_0Ym9-fj5Xx2kMiHor0GE0c/edit
 
 ## Data
