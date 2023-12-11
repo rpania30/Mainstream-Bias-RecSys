@@ -111,30 +111,25 @@ class Simulation:
         # Load the Mainstream scores
         MS_similarity_file_path = f'./Data/{self.data}/MS_similarity.npy'
         MS_similarity = np.load(MS_similarity_file_path)
-
-        # Get the sorted indices
         sorted_indices = np.argsort(MS_similarity)[::-1]
-
+        
         # Initialize lists to store results for each epoch
         gini_coefficients = []
         itr_user_click_item = []
+        itr_cumulated_click_count_list = []
+        itr_GC_TPR_list = []
 
         for epoch in range(self.epoch):
             print('*' * 30 + f' Epoch {epoch} ' + '*' * 30)
 
             itr_rec_item = []
             itr_user = []  # Store user IDs for this epoch
-
             user_list = np.random.randint(self.num_user, size=self.num_user) # UIDs
-
             user_count = np.zeros(self.num_user)
             item_click = np.zeros(self.num_item)
-
-            # Sort the user list based on MS_Similarity scores
-            user_list = user_list[sorted_indices]
-
             last_time = time.time()
             itr = 0
+
             for _ in range(int(self.iteration / self.cycle_itr)):
                 for _ in tqdm(range(self.cycle_itr)):
                     uid = user_list[itr]
@@ -142,7 +137,6 @@ class Simulation:
                     u_truth_like = self.truth_like[uid]
 
                     user_count[uid] += 1
-
                     scores = mf.predict_scores(uid)
                     scores[u_feedback] = -9999.
                     topK_iid = np.argpartition(scores, -self.K)[-self.K:]
@@ -161,16 +155,12 @@ class Simulation:
                             click_item.append(iid)
                             item_click[iid] += 1
                             self.truth_unclick[uid, iid] = 0
-
-                            # Update the truth values for the user
-                            # self.truth[uid, iid] = 1  # Assuming 1 represents a positive interaction
                         else:
                             self.neg_feedback.append([uid, iid, k])
 
                     itr_user_click_item.append(click_item)
                     itr_user.append(uid)
                     itr += 1
-
                     # Remove clicked items from: self.truth_like
                     self.truth_like[uid] = [item for item in self.truth_like[uid] if item not in click_item]
 
@@ -192,12 +182,34 @@ class Simulation:
                     user_NDCG[user] = user_DCG[user] / ideal_dcg if ideal_dcg > 0 else 0
 
             # Calculate Gini coefficient for this epoch
-            a = user_TPR[sorted_indices] # sort recall list based on UID of mainstream scores
+            print(user_TPR.dtype, sorted_indices.dtype)
+            a = user_TPR[sorted_indices]
             gc = np.sum(((np.arange(len(a)) + 1.) * 2 - len(a) - 1) * a) / (len(a) * np.sum(a))
-
-            print("\n\n" + a + gc + "\n\n")
-
             gini_coefficients.append(gc)
+            
+            # new analysis code
+            # Cumulated click count and item click calculation for the epoch
+            itr_cumulated_click_count = []
+            itr_item_click = np.zeros((self.num_user, self.num_item))
+            for uid in itr_user:
+                click_item = self.user_feedback[uid]
+                itr_item_click[uid, click_item] = 1.
+                cum_click_count = len(click_item) if uid == 0 else len(click_item) + itr_cumulated_click_count[-1]
+                itr_cumulated_click_count.append(cum_click_count)
+            for uid in range(1, self.num_user):
+                itr_item_click[uid, :] += itr_item_click[uid - 1, :]
+            itr_item_click /= (self.audience_size - self.init_popularity).reshape((1, -1))
+
+            # GC_TPR calculation for the epoch
+            itr_GC_TPR = []
+            for uid in range(self.num_user):
+                a = itr_item_click[uid, self.item_sorted]
+                gc_tpr = np.sum(((np.arange(len(a)) + 1.) * 2 - len(a) - 1) * a) / (len(a) * np.sum(a))
+                itr_GC_TPR.append(gc_tpr)
+
+            # Store the results for the epoch
+            itr_cumulated_click_count_list.append(itr_cumulated_click_count)
+            itr_GC_TPR_list.append(itr_GC_TPR)
 
             print('#' * 10
                   + ' The iteration %d, up to now total %d clicks, GC=%.4f, this cycle used %.2f s) '
