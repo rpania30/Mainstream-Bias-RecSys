@@ -188,30 +188,6 @@ class Simulation:
             gc = np.sum(((np.arange(len(a)) + 1.) * 2 - len(a) - 1) * a) / (len(a) * np.sum(a))
             print(gc)
             gini_coefficients.append(gc)
-            
-            # # new analysis code
-            # # Cumulated click count and item click calculation for the epoch
-            # itr_cumulated_click_count = []
-            # itr_item_click = np.zeros((self.num_user, self.num_item))
-            # for uid in itr_user:
-            #     click_item = self.user_feedback[uid]
-            #     itr_item_click[uid, click_item] = 1.
-            #     cum_click_count = len(click_item) if uid == 0 else len(click_item) + itr_cumulated_click_count[-1]
-            #     itr_cumulated_click_count.append(cum_click_count)
-            # for uid in range(1, self.num_user):
-            #     itr_item_click[uid, :] += itr_item_click[uid - 1, :]
-            # itr_item_click /= (self.audience_size - self.init_popularity).reshape((1, -1))
-
-            # # GC_TPR calculation for the epoch
-            # itr_GC_TPR = []
-            # for uid in range(self.num_user):
-            #     a = itr_item_click[uid, self.item_sorted]
-            #     gc_tpr = np.sum(((np.arange(len(a)) + 1.) * 2 - len(a) - 1) * a) / (len(a) * np.sum(a))
-            #     itr_GC_TPR.append(gc_tpr)
-
-            # # Store the results for the epoch
-            # itr_cumulated_click_count_list.append(itr_cumulated_click_count)
-            # itr_GC_TPR_list.append(itr_GC_TPR)
 
             print('#' * 10
                   + ' The iteration %d, up to now total %d clicks, GC=%.4f, this cycle used %.2f s) '
